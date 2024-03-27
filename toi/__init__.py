@@ -1,12 +1,15 @@
+from json import loads
 from typing import List
 
 import tiktoken
 from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from tiktoken.core import Encoding
 
 OPEN_AI_MODELS: dict[str, List[str | int]] = {
     "model": [
+        "gpt-4-1106-vision-preview",
         "gpt-4-0125-preview",
         "gpt-4-turbo-preview",
         "gpt-4-1106-preview",
@@ -30,6 +33,7 @@ OPEN_AI_MODELS: dict[str, List[str | int]] = {
         128000,
         128000,
         128000,
+        128000,
         8192,
         8192,
         32768,
@@ -45,6 +49,7 @@ OPEN_AI_MODELS: dict[str, List[str | int]] = {
         16385,
     ],
     "outputTokens": [
+        4096,
         4096,
         4096,
         4096,
@@ -73,7 +78,7 @@ def countTokens(text: str, model: str) -> int:
 
 
 def validateTokenLength(tokenAmount: int, model: str) -> bool:
-    idx: int = list(OPEN_AI_MODELS.keys()).index(model)
+    idx: int = OPEN_AI_MODELS["model"].index(model)
 
     if tokenAmount < OPEN_AI_MODELS["inputTokens"][idx]:
         return True
@@ -100,7 +105,7 @@ def chat(text: str, systemPrompt: str, apiKey: str, model: str, seed: int = 42) 
         )
         return {}
 
-    headers: List[dict[str, str]] = [
+    headers: List[ChatCompletionMessageParam] = [
         {"role": "system", "content": systemPrompt},
         {"role": "user", "content": text},
     ]
@@ -114,4 +119,9 @@ def chat(text: str, systemPrompt: str, apiKey: str, model: str, seed: int = 42) 
         seed=seed,
     )
 
-    print(response)
+    content: str | None = response.choices[0].message.content
+
+    if type(content) is str:
+        return loads(s=content)
+    else:
+        return {}
