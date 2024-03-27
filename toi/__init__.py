@@ -1,6 +1,8 @@
 from typing import List
 
+import tiktoken
 from pandas import DataFrame
+from tiktoken.core import Encoding
 
 OPEN_AI_MODELS: dict[str, List[str | int]] = {
     "model": [
@@ -62,4 +64,17 @@ OPEN_AI_MODELS: dict[str, List[str | int]] = {
     ],
 }
 
-OPEN_AI_MODELS_DF: DataFrame = DataFrame(data=OPEN_AI_MODELS)
+
+def countTokens(text: str, model: str) -> int:
+    encoding: Encoding = tiktoken.encoding_for_model(model_name=model)
+    encodedText: List[int] = encoding.encode(text=text)
+    return len(encodedText)
+
+
+def validateTokenLength(tokenAmount: int, model: str) -> bool:
+    idx: int = list(OPEN_AI_MODELS.keys()).index(model)
+
+    if tokenAmount < OPEN_AI_MODELS["inputTokens"][idx]:
+        return True
+    else:
+        return False
