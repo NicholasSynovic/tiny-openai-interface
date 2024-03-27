@@ -2,7 +2,7 @@ from typing import List
 
 from pandas import DataFrame
 
-openAIModels: dict[str, List[str | int]] = {
+OPEN_AI_MODELS: dict[str, List[str | int]] = {
     "model": [
         "gpt-4-0125-preview",
         "gpt-4-turbo-preview",
@@ -62,4 +62,4 @@ openAIModels: dict[str, List[str | int]] = {
     ],
 }
 
-openAIModels_DF: DataFrame = DataFrame(data=openAIModels)
+OPEN_AI_MODELS_DF: DataFrame = DataFrame(data=OPEN_AI_MODELS)
