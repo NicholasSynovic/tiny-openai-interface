@@ -1,7 +1,8 @@
 from typing import List
 
 import tiktoken
-from pandas import DataFrame
+from openai import OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
 from tiktoken.core import Encoding
 
 OPEN_AI_MODELS: dict[str, List[str | int]] = {
@@ -78,3 +79,39 @@ def validateTokenLength(tokenAmount: int, model: str) -> bool:
         return True
     else:
         return False
+
+
+def chat(text: str, systemPrompt: str, apiKey: str, model: str, seed: int = 42) -> dict:
+    userTextTokenCount: int = countTokens(text=text, model=model)
+
+    if validateTokenLength(tokenAmount=userTextTokenCount, model=model) is False:
+        print("ERROR: Input text token count is larger than the model token limit")
+        return {}
+
+    systemPromptTokenCount: int = countTokens(text=systemPrompt, model=model)
+    if validateTokenLength(tokenAmount=systemPromptTokenCount, model=model) is False:
+        print("ERROR: System prompt token count is larger than the model token limit")
+        return {}
+
+    totalTokenCount: int = userTextTokenCount + systemPromptTokenCount
+    if validateTokenLength(tokenAmount=totalTokenCount, model=model) is False:
+        print(
+            "ERROR: Too many tokens shared between input text and system prompt which is larger than the model token limit"
+        )
+        return {}
+
+    headers: List[dict[str, str]] = [
+        {"role": "system", "content": systemPrompt},
+        {"role": "user", "content": text},
+    ]
+
+    client: OpenAI = OpenAI(api_key=apiKey)
+
+    response: ChatCompletion = client.chat.completions.create(
+        model=model,
+        response_format={"type": "json_object"},
+        messages=headers,
+        seed=seed,
+    )
+
+    print(response)
